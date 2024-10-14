@@ -183,6 +183,7 @@
         let nodes = [];
         let tileImage, bugImage;
         let maxSpeed = 0.5;
+        let spawnInterval;
 
         function preload() {
             tileImage = loadImage('tile.jpg');
@@ -193,25 +194,10 @@
             let canvas = createCanvas(windowWidth, windowHeight * 0.6);
             canvas.parent(document.getElementById('headerCanvas'));
 
-            // Spawn bugs at random positions on the edge of the canvas
-            for (let i = 0; i < 50; i++) {
-                let edge = floor(random(4));
-                let x, y;
-                if (edge === 0) { // Top edge
-                    x = random(width);
-                    y = 0;
-                } else if (edge === 1) { // Right edge
-                    x = width;
-                    y = random(height);
-                } else if (edge === 2) { // Bottom edge
-                    x = random(width);
-                    y = height;
-                } else { // Left edge
-                    x = 0;
-                    y = random(height);
-                }
-                nodes.push(new Node(x, y));
-            }
+            // Start spawning bugs over time
+            spawnInterval = setInterval(() => {
+                spawnBug();
+            }, random(500, 1500)); // Spawn a bug at random intervals between 500ms to 1500ms
         }
 
         function draw() {
@@ -225,29 +211,29 @@
             for (let i = nodes.length - 1; i >= 0; i--) {
                 nodes[i].update();
                 nodes[i].display();
-                nodes[i].checkCollision(nodes);
                 if (nodes[i].isOutOfBounds()) {
                     nodes.splice(i, 1);
                 }
             }
-            if (nodes.length < 50) {
-                let edge = floor(random(4));
-                let x, y;
-                if (edge === 0) { // Top edge
-                    x = random(width);
-                    y = 0;
-                } else if (edge === 1) { // Right edge
-                    x = width;
-                    y = random(height);
-                } else if (edge === 2) { // Bottom edge
-                    x = random(width);
-                    y = height;
-                } else { // Left edge
-                    x = 0;
-                    y = random(height);
-                }
-                nodes.push(new Node(x, y));
+        }
+
+        function spawnBug() {
+            let edge = floor(random(4));
+            let x, y;
+            if (edge === 0) { // Top edge
+                x = random(width);
+                y = 0;
+            } else if (edge === 1) { // Right edge
+                x = width;
+                y = random(height);
+            } else if (edge === 2) { // Bottom edge
+                x = random(width);
+                y = height;
+            } else { // Left edge
+                x = 0;
+                y = random(height);
             }
+            nodes.push(new Node(x, y));
         }
 
         class Node {
@@ -277,21 +263,6 @@
                 imageMode(CENTER);
                 image(bugImage, 0, 0, this.size, this.size); // Draw the bug image
                 pop();
-            }
-
-            checkCollision(nodes) {
-                for (let other of nodes) {
-                    if (other !== this) {
-                        let d = dist(this.x, this.y, other.x, other.y);
-                        if (d < (this.size / 2 + other.size / 2)) {
-                            // Simple collision response: reverse speed
-                            this.xSpeed *= -1;
-                            this.ySpeed *= -1;
-                            other.xSpeed *= -1;
-                            other.ySpeed *= -1;
-                        }
-                    }
-                }
             }
 
             isOutOfBounds() {
