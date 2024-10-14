@@ -232,4 +232,99 @@
             }
             if (nodes.length < 50) {
                 let edge = floor(random(4));
-                let x,
+                let x, y;
+                if (edge === 0) { // Top edge
+                    x = random(width);
+                    y = 0;
+                } else if (edge === 1) { // Right edge
+                    x = width;
+                    y = random(height);
+                } else if (edge === 2) { // Bottom edge
+                    x = random(width);
+                    y = height;
+                } else { // Left edge
+                    x = 0;
+                    y = random(height);
+                }
+                nodes.push(new Node(x, y));
+            }
+        }
+
+        class Node {
+            constructor(x, y) {
+                this.x = x;
+                this.y = y;
+                this.size = random(60, 90); // Larger size range for bug images
+                this.xSpeed = random(-maxSpeed, maxSpeed);
+                this.ySpeed = random(-maxSpeed, maxSpeed);
+                this.targetX = width / 2;
+                this.targetY = height / 2;
+            }
+
+            update() {
+                let angleToTarget = atan2(this.targetY - this.y, this.targetX - this.x);
+                this.xSpeed = cos(angleToTarget) * maxSpeed;
+                this.ySpeed = sin(angleToTarget) * maxSpeed;
+                this.x += this.xSpeed;
+                this.y += this.ySpeed;
+            }
+
+            display() {
+                push();
+                translate(this.x, this.y);
+                let angle = atan2(this.ySpeed, this.xSpeed) + HALF_PI; // Rotate to correctly face direction of movement
+                rotate(angle);
+                imageMode(CENTER);
+                image(bugImage, 0, 0, this.size, this.size); // Draw the bug image
+                pop();
+            }
+
+            checkCollision(nodes) {
+                for (let other of nodes) {
+                    if (other !== this) {
+                        let d = dist(this.x, this.y, other.x, other.y);
+                        if (d < (this.size / 2 + other.size / 2)) {
+                            // Simple collision response: reverse speed
+                            this.xSpeed *= -1;
+                            this.ySpeed *= -1;
+                            other.xSpeed *= -1;
+                            other.ySpeed *= -1;
+                        }
+                    }
+                }
+            }
+
+            isOutOfBounds() {
+                return (this.x < 0 || this.x > width || this.y < 0 || this.y > height);
+            }
+        }
+
+        function windowResized() {
+            resizeCanvas(windowWidth, windowHeight * 0.6);
+        }
+
+        // Intersection Observer to trigger animations when in view
+        document.addEventListener("DOMContentLoaded", function() {
+            const observerOptions = {
+                root: null,
+                rootMargin: "0px",
+                threshold: 0.1
+            };
+
+            const observer = new IntersectionObserver((entries, observer) => {
+                entries.forEach(entry => {
+                    if (entry.isIntersecting) {
+                        entry.target.classList.add("visible");
+                        observer.unobserve(entry.target);
+                    }
+                });
+            }, observerOptions);
+
+            const containers = document.querySelectorAll(".container");
+            containers.forEach(container => {
+                observer.observe(container);
+            });
+        });
+    </script>
+</body>
+</html>
