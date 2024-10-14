@@ -181,9 +181,8 @@
 
     <script>
         let nodes = [];
-        let spawnPoints = [];
         let tileImage, bugImage;
-        let maxSpeed = 0.1; // Slow down the particle system
+        let maxSpeed = 0.5;
 
         function preload() {
             tileImage = loadImage('tile.jpg');
@@ -194,19 +193,24 @@
             let canvas = createCanvas(windowWidth, windowHeight * 0.6);
             canvas.parent(document.getElementById('headerCanvas'));
 
-            // Define multiple spawning points
-            spawnPoints = [
-                { x: width * 0.25, y: height * 0.25 },
-                { x: width * 0.75, y: height * 0.25 },
-                { x: width * 0.25, y: height * 0.75 },
-                { x: width * 0.75, y: height * 0.75 },
-                { x: width * 0.5, y: height * 0.5 }
-            ];
-
-            // Create nodes at random spawning points
-            for (let i = 0; i < 50; i++) { // Reduce number of particles for better visibility
-                let spawnPoint = random(spawnPoints);
-                nodes.push(new Node(spawnPoint.x, spawnPoint.y));
+            // Spawn bugs at random positions on the edge of the canvas
+            for (let i = 0; i < 50; i++) {
+                let edge = floor(random(4));
+                let x, y;
+                if (edge === 0) { // Top edge
+                    x = random(width);
+                    y = 0;
+                } else if (edge === 1) { // Right edge
+                    x = width;
+                    y = random(height);
+                } else if (edge === 2) { // Bottom edge
+                    x = random(width);
+                    y = height;
+                } else { // Left edge
+                    x = 0;
+                    y = random(height);
+                }
+                nodes.push(new Node(x, y));
             }
         }
 
@@ -221,74 +225,11 @@
             for (let i = nodes.length - 1; i >= 0; i--) {
                 nodes[i].update();
                 nodes[i].display();
+                nodes[i].checkCollision(nodes);
                 if (nodes[i].isOutOfBounds()) {
                     nodes.splice(i, 1);
                 }
             }
             if (nodes.length < 50) {
-                let spawnPoint = random(spawnPoints);
-                nodes.push(new Node(spawnPoint.x, spawnPoint.y));
-            }
-        }
-
-        class Node {
-            constructor(x, y) {
-                this.x = x;
-                this.y = y;
-                this.size = random(60, 100); // Larger size to accommodate the image
-                this.xSpeed = random(-maxSpeed, maxSpeed);
-                this.ySpeed = random(-maxSpeed, maxSpeed);
-            }
-
-            update() {
-                this.x += this.xSpeed;
-                this.y += this.ySpeed;
-                maxSpeed = min(maxSpeed + 0.0005, 1); // Gradually increase speed, slower growth
-                this.xSpeed = constrain(this.xSpeed, -maxSpeed, maxSpeed);
-                this.ySpeed = constrain(this.ySpeed, -maxSpeed, maxSpeed);
-            }
-
-            display() {
-                push();
-                translate(this.x, this.y);
-                let angle = atan2(this.ySpeed, this.xSpeed) - HALF_PI;
-                rotate(angle); // Rotate to face direction of movement
-                imageMode(CENTER);
-                image(bugImage, 0, 0, this.size, this.size); // Draw the bug image
-                pop();
-            }
-
-            isOutOfBounds() {
-                return (this.x < 0 || this.x > width || this.y < 0 || this.y > height);
-            }
-        }
-
-        function windowResized() {
-            resizeCanvas(windowWidth, windowHeight * 0.6);
-        }
-
-        // Intersection Observer to trigger animations when in view
-        document.addEventListener("DOMContentLoaded", function() {
-            const observerOptions = {
-                root: null,
-                rootMargin: "0px",
-                threshold: 0.1
-            };
-
-            const observer = new IntersectionObserver((entries, observer) => {
-                entries.forEach(entry => {
-                    if (entry.isIntersecting) {
-                        entry.target.classList.add("visible");
-                        observer.unobserve(entry.target);
-                    }
-                });
-            }, observerOptions);
-
-            const containers = document.querySelectorAll(".container");
-            containers.forEach(container => {
-                observer.observe(container);
-            });
-        });
-    </script>
-</body>
-</html>
+                let edge = floor(random(4));
+                let x,
