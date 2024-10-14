@@ -243,12 +243,10 @@
                 this.size = random(60, 90); // Larger size range for bug images
                 this.xSpeed = random(-maxSpeed, maxSpeed);
                 this.ySpeed = random(-maxSpeed, maxSpeed);
-                this.targetX = width / 2;
-                this.targetY = height / 2;
             }
 
             update() {
-                let angleToTarget = atan2(this.targetY - this.y, this.targetX - this.x);
+                let angleToTarget = atan2(mouseY - this.y, mouseX - this.x);
                 this.xSpeed = cos(angleToTarget) * maxSpeed;
                 this.ySpeed = sin(angleToTarget) * maxSpeed;
                 this.x += this.xSpeed;
